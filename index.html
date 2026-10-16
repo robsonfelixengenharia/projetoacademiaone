@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
+
+<title>Félix Engenharia | Projeto 3D</title>
+
+
+<style>
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #e8e8e8;
+}
+
+#viewer {
+    position: fixed;
+    inset: 0;
+}
+
+canvas {
+    display: block;
+}
+
+
+/* =====================================================
+   BARRA SUPERIOR
+===================================================== */
+
+#topbar {
+
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 20px;
+
+    background: rgba(18,18,18,0.94);
+
+    color: white;
+
+    z-index: 1000;
+}
+
+
+#empresa {
+
+    font-size: 19px;
+
+    font-weight: bold;
+
+    letter-spacing: 1px;
+
+    white-space: nowrap;
+}
+
+
+#buttons {
+
+    display: flex;
+
+    gap: 7px;
+}
+
+
+button {
+
+    border: none;
+
+    border-radius: 20px;
+
+    padding: 9px 14px;
+
+    background: #333;
+
+    color: white;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+
+button.active {
+
+    background: #16853c;
+}
+
+
+
+/* =====================================================
+   CARREGAMENTO
+===================================================== */
+
+#loading {
+
+    position: fixed;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    background: rgba(20,20,20,0.92);
+
+    color: white;
+
+    padding: 20px 30px;
+
+    border-radius: 15px;
+
+    z-index: 2000;
+
+    text-align: center;
+}
+
+
+#progress {
+
+    margin-top: 10px;
+
+    color: #ccc;
+
+    font-size: 13px;
+}
+
+
+
+/* =====================================================
+   INSTRUÇÕES
+===================================================== */
+
+#help {
+
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 20px;
+
+    transform: translateX(-50%);
+
+    padding: 10px 18px;
+
+    border-radius: 20px;
+
+    background: rgba(15,15,15,0.75);
+
+    color: white;
+
+    font-size: 12px;
+
+    z-index: 800;
+
+    pointer-events: none;
+
+    display: none;
+
+    white-space: nowrap;
+}
+
+
+
+/* =====================================================
+   MIRA
+===================================================== */
+
+#crosshair {
+
+    position: fixed;
+
+    left: 50%;
+
+    top: 50%;
+
+    width: 8px;
+
+    height: 8px;
+
+    transform: translate(-50%, -50%);
+
+    border: 2px solid white;
+
+    border-radius: 50%;
+
+    z-index: 700;
+
+    pointer-events: none;
+
+    display: none;
+}
+
+
+
+/* =====================================================
+   CONTROLES MOBILE
+===================================================== */
+
+#mobileWalk {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 500;
+
+    display: none;
+
+    pointer-events: none;
+}
+
+
+
+/* =====================================================
+   JOYSTICK
+===================================================== */
+
+#joystickArea {
+
+    position: absolute;
+
+    width: 160px;
+
+    height: 160px;
+
+    left: 15px;
+
+    bottom: 25px;
+
+    pointer-events: auto;
+
+    touch-action: none;
+}
+
+
+#joystickBase {
+
+    position: absolute;
+
+    width: 120px;
+
+    height: 120px;
+
+    left: 20px;
+
+    top: 20px;
+
+    border-radius: 50%;
+
+    background: rgba(20,20,20,0.42);
+
+    border: 2px solid rgba(255,255,255,0.65);
+}
+
+
+#joystickKnob {
+
+    position: absolute;
+
+    width: 52px;
+
+    height: 52px;
+
+    left: 54px;
+
+    top: 54px;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,0.88);
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+    pointer-events: none;
+}
+
+
+
+/* =====================================================
+   ÁREA DE VISÃO MOBILE
+===================================================== */
+
+#touchLook {
+
+    position: absolute;
+
+    top: 64px;
+
+    right: 0;
+
+    bottom: 0;
+
+    width: 60%;
+
+    pointer-events: auto;
+
+    touch-action: none;
+}
+
+
+
+/* =====================================================
+   SUBIR / DESCER
+===================================================== */
+
+#verticalButtons {
+
+    position: absolute;
+
+    right: 18px;
+
+    bottom: 25px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    pointer-events: auto;
+
+    z-index: 520;
+}
+
+
+.verticalButton {
+
+    width: 50px;
+
+    height: 50px;
+
+    padding: 0;
+
+    border-radius: 50%;
+
+    background: rgba(20,20,20,0.62);
+
+    border: 1px solid rgba(255,255,255,0.65);
+
+    font-size: 18px;
+
+    touch-action: none;
+}
+
+
+
+/* =====================================================
+   CELULAR
+===================================================== */
+
+@media (max-width: 700px) {
+
+
+    #topbar {
+
+        height: 58px;
+
+        padding: 0 6px;
+    }
+
+
+    #empresa {
+
+        font-size: 11px;
+
+        max-width: 80px;
+
+        line-height: 12px;
+
+        white-space: normal;
+    }
+
+
+    #buttons {
+
+        gap: 3px;
+    }
+
+
+    button {
+
+        padding: 8px 7px;
+
+        font-size: 9px;
+    }
+
+
+    #touchLook {
+
+        top: 58px;
+    }
+
+
+    #help {
+
+        top: 68px;
+
+        bottom: auto;
+
+        font-size: 10px;
+
+        padding: 7px 10px;
+    }
+
+
+    #joystickArea {
+
+        width: 145px;
+
+        height: 145px;
+
+        left: 8px;
+
+        bottom: 15px;
+    }
+
+
+    #joystickBase {
+
+        width: 110px;
+
+        height: 110px;
+
+        left: 17.5px;
+
+        top: 17.5px;
+    }
+
+
+    #joystickKnob {
+
+        width: 48px;
+
+        height: 48px;
+
+        left: 48.5px;
+
+        top: 48.5px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div id="viewer"></div>
+
+
+<div id="topbar">
+
+    <div id="empresa">
+        FÉLIX ENGENHARIA
+    </div>
+
+
+    <div id="buttons">
+
+        <button id="orbitBtn" class="active">
+            🏠 Vista
+        </button>
+
+        <button id="walkBtn">
+            🚶 Caminhar
+        </button>
+
+        <button id="homeBtn">
+            ↺ Início
+        </button>
+
+        <button id="fullscreenBtn">
+            ⛶
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<div id="loading">
+
+    Carregando projeto 3D...
+
+    <div id="progress">
+        0%
+    </div>
+
+</div>
+
+
+
+<div id="help"></div>
+
+<div id="crosshair"></div>
+
+
+
+<!-- ===================================================
+     CONTROLES EXCLUSIVOS DO CELULAR
+=================================================== -->
+
+<div id="mobileWalk">
+
+
+    <div id="joystickArea">
+
+        <div id="joystickBase"></div>
+
+        <div id="joystickKnob"></div>
+
+    </div>
+
+
+    <div id="touchLook"></div>
+
+
+    <div id="verticalButtons">
+
+        <button
+        id="upButton"
+        class="verticalButton">
+
+            ▲
+
+        </button>
+
+
+        <button
+        id="downButton"
+        class="verticalButton">
+
+            ▼
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- ===================================================
+     THREE.JS
+=================================================== -->
+
+<script type="importmap">
+
+{
+    "imports": {
+
+        "three":
+        "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+
+        "three/addons/":
+        "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+}
+
+</script>
+
+
+
+<script type="module">
+
+
+import * as THREE from 'three';
+
+
+import {
+    OrbitControls
+}
+from 'three/addons/controls/OrbitControls.js';
+
+
+import {
+    PointerLockControls
+}
+from 'three/addons/controls/PointerLockControls.js';
+
+
+import {
+    GLTFLoader
+}
+from 'three/addons/loaders/GLTFLoader.js';
+
+
+
+/* =====================================================
+   DETECÇÃO MOBILE
+===================================================== */
+
+const isMobile =
+
+    window.matchMedia(
+        '(pointer: coarse)'
+    ).matches
+
+    ||
+
+    navigator.maxTouchPoints > 0;
+
+
+
+/* =====================================================
+   CENA
+===================================================== */
+
+const scene =
+    new THREE.Scene();
+
+
+scene.background =
+    new THREE.Color(
+        0xeeeeee
+    );
+
+
+
+/* =====================================================
+   CÂMERA
+===================================================== */
+
+const camera =
+    new THREE.PerspectiveCamera(
+
+        65,
+
+        window.innerWidth /
+        window.innerHeight,
+
+        0.05,
+
+        10000
+    );
+
+
+
+/* =====================================================
+   RENDERER
+===================================================== */
+
+const renderer =
+    new THREE.WebGLRenderer({
+
+        antialias: true,
+
+        powerPreference:
+        'high-performance'
+    });
+
+
+renderer.setPixelRatio(
+
+    Math.min(
+
+        window.devicePixelRatio,
+
+        1.75
+    )
+
+);
+
+
+renderer.setSize(
+
+    window.innerWidth,
+
+    window.innerHeight
+);
+
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+
+document
+.getElementById('viewer')
+.appendChild(
+
+    renderer.domElement
+
+);
+
+
+
+/* =====================================================
+   LUZ
+===================================================== */
+
+const hemisphere =
+    new THREE.HemisphereLight(
+
+        0xffffff,
+
+        0x777777,
+
+        2.5
+    );
+
+
+scene.add(
+    hemisphere
+);
+
+
+
+const sun =
+    new THREE.DirectionalLight(
+
+        0xffffff,
+
+        3
+    );
+
+
+sun.position.set(
+
+    50,
+
+    100,
+
+    50
+);
+
+
+scene.add(
+    sun
+);
+
+
+
+/* =====================================================
+   ORBIT CONTROLS
+===================================================== */
+
+const orbit =
+    new OrbitControls(
+
+        camera,
+
+        renderer.domElement
+    );
+
+
+orbit.enableDamping =
+    true;
+
+
+orbit.dampingFactor =
+    0.07;
+
+
+orbit.zoomSpeed =
+    0.5;
+
+
+orbit.enablePan =
+    true;
+
+
+orbit.panSpeed =
+    0.7;
+
+
+
+/* =====================================================
+   POINTER LOCK
+
+   SÓ SERÁ UTILIZADO NO COMPUTADOR
+===================================================== */
+
+let pointerControls = null;
+
+
+if(!isMobile) {
+
+
+    pointerControls =
+        new PointerLockControls(
+
+            camera,
+
+            renderer.domElement
+        );
+
+
+    pointerControls.pointerSpeed =
+        0.8;
+
+}
+
+
+
+/* =====================================================
+   VARIÁVEIS
+===================================================== */
+
+let mode =
+    'orbit';
+
+
+let modelCenter =
+    new THREE.Vector3();
+
+
+let modelSize =
+    1;
+
+
+
+/* =====================================================
+   CARREGAR GLB
+===================================================== */
+
+const loader =
+    new GLTFLoader();
+
+
+loader.load(
+
+
+    /*
+       Aumente o número caso substitua
+       o arquivo GLB futuramente.
+    */
+
+    'modelo.glb?v=30',
+
+
+
+    gltf => {
+
+
+        const model =
+            gltf.scene;
+
+
+        scene.add(
+            model
+        );
+
+
+
+        /* =============================================
+           DIMENSÕES
+        ============================================= */
+
+        const box =
+            new THREE.Box3()
+            .setFromObject(
+                model
+            );
+
+
+        const size =
+            box.getSize(
+
+                new THREE.Vector3()
+            );
+
+
+        box.getCenter(
+            modelCenter
+        );
+
+
+        modelSize =
+            Math.max(
+
+                size.x,
+
+                size.y,
+
+                size.z
+            );
+
+
+
+        /* =============================================
+           LIMITE DE ZOOM
+
+           10%, COMO VOCÊ PEDIU
+        ============================================= */
+
+        orbit.minDistance =
+            modelSize * 0.10;
+
+
+        orbit.maxDistance =
+            modelSize * 5;
+
+
+
+        /* =============================================
+           VISTA INICIAL
+        ============================================= */
+
+        setHome();
+
+
+
+        document
+        .getElementById('loading')
+        .style.display =
+            'none';
+
+    },
+
+
+
+    xhr => {
+
+
+        if(xhr.total) {
+
+
+            const value =
+                Math.round(
+
+                    xhr.loaded /
+                    xhr.total *
+                    100
+                );
+
+
+            document
+            .getElementById('progress')
+            .textContent =
+
+                value + '%';
+
+        }
+
+    },
+
+
+
+    error => {
+
+
+        console.error(
+            error
+        );
+
+
+        document
+        .getElementById('loading')
+        .innerHTML =
+
+            'Erro ao carregar o projeto 3D';
+
+    }
+
+);
+
+
+
+/* =====================================================
+   VISTA INICIAL
+===================================================== */
+
+function setHome() {
+
+
+    camera.position.set(
+
+        modelCenter.x +
+        modelSize * 0.75,
+
+
+        modelCenter.y +
+        modelSize * 0.45,
+
+
+        modelCenter.z +
+        modelSize * 0.75
+    );
+
+
+    orbit.target.copy(
+        modelCenter
+    );
+
+
+    orbit.update();
+
+}
+
+
+
+/* =====================================================
+   ELEMENTOS HTML
+===================================================== */
+
+const orbitBtn =
+    document.getElementById(
+        'orbitBtn'
+    );
+
+
+const walkBtn =
+    document.getElementById(
+        'walkBtn'
+    );
+
+
+const homeBtn =
+    document.getElementById(
+        'homeBtn'
+    );
+
+
+const help =
+    document.getElementById(
+        'help'
+    );
+
+
+const crosshair =
+    document.getElementById(
+        'crosshair'
+    );
+
+
+const mobileWalk =
+    document.getElementById(
+        'mobileWalk'
+    );
+
+
+
+/* =====================================================
+   VISTA GERAL
+===================================================== */
+
+function activateOrbit() {
+
+
+    mode =
+        'orbit';
+
+
+    orbit.enabled =
+        true;
+
+
+
+    if(
+        pointerControls &&
+        pointerControls.isLocked
+    ) {
+
+
+        pointerControls.unlock();
+
+    }
+
+
+
+    mobileWalk.style.display =
+        'none';
+
+
+    help.style.display =
+        'none';
+
+
+    crosshair.style.display =
+        'none';
+
+
+
+    orbitBtn
+    .classList
+    .add(
+        'active'
+    );
+
+
+    walkBtn
+    .classList
+    .remove(
+        'active'
+    );
+
+}
+
+
+
+orbitBtn.addEventListener(
+
+    'click',
+
+    activateOrbit
+
+);
+
+
+
+/* =====================================================
+   CAMINHAR
+===================================================== */
+
+function activateWalk() {
+
+
+    mode =
+        'walk';
+
+
+    orbit.enabled =
+        false;
+
+
+
+    orbitBtn
+    .classList
+    .remove(
+        'active'
+    );
+
+
+    walkBtn
+    .classList
+    .add(
+        'active'
+    );
+
+
+    crosshair.style.display =
+        'block';
+
+
+
+    /* =============================================
+       CELULAR
+    ============================================= */
+
+    if(isMobile) {
+
+
+        /*
+           Nenhum PointerLock é chamado aqui.
+        */
+
+
+        mobileWalk.style.display =
+            'block';
+
+
+        help.textContent =
+
+            'Joystick = andar • Arraste o lado direito = olhar';
+
+
+        help.style.display =
+            'block';
+
+    }
+
+
+
+    /* =============================================
+       COMPUTADOR
+    ============================================= */
+
+    else {
+
+
+        mobileWalk.style.display =
+            'none';
+
+
+        help.textContent =
+
+            'WASD = andar • Mouse = olhar • E/Q = subir/descer • ESC = sair';
+
+
+        help.style.display =
+            'block';
+
+
+        pointerControls.lock();
+
+    }
+
+}
+
+
+
+walkBtn.addEventListener(
+
+    'click',
+
+    activateWalk
+
+);
+
+
+
+/* =====================================================
+   INÍCIO
+===================================================== */
+
+homeBtn.addEventListener(
+
+    'click',
+
+    () => {
+
+
+        activateOrbit();
+
+
+        setHome();
+
+    }
+
+);
+
+
+
+/* =====================================================
+   TELA CHEIA
+===================================================== */
+
+document
+.getElementById('fullscreenBtn')
+.addEventListener(
+
+    'click',
+
+    async () => {
+
+
+        try {
+
+
+            if(
+                !document.fullscreenElement
+            ) {
+
+
+                await document
+                .documentElement
+                .requestFullscreen();
+
+            }
+
+
+            else {
+
+
+                await document
+                .exitFullscreen();
+
+            }
+
+        }
+
+
+        catch(e) {
+
+            console.log(
+                'Tela cheia indisponível.'
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/* =====================================================
+   TECLADO PC
+===================================================== */
+
+const keys = {
+
+    forward: false,
+
+    backward: false,
+
+    left: false,
+
+    right: false,
+
+    up: false,
+
+    down: false
+};
+
+
+
+window.addEventListener(
+
+    'keydown',
+
+    e => {
+
+
+        if(e.code === 'KeyW')
+            keys.forward = true;
+
+
+        if(e.code === 'KeyS')
+            keys.backward = true;
+
+
+        if(e.code === 'KeyA')
+            keys.left = true;
+
+
+        if(e.code === 'KeyD')
+            keys.right = true;
+
+
+        if(e.code === 'KeyE')
+            keys.up = true;
+
+
+        if(e.code === 'KeyQ')
+            keys.down = true;
+
+    }
+
+);
+
+
+
+window.addEventListener(
+
+    'keyup',
+
+    e => {
+
+
+        if(e.code === 'KeyW')
+            keys.forward = false;
+
+
+        if(e.code === 'KeyS')
+            keys.backward = false;
+
+
+        if(e.code === 'KeyA')
+            keys.left = false;
+
+
+        if(e.code === 'KeyD')
+            keys.right = false;
+
+
+        if(e.code === 'KeyE')
+            keys.up = false;
+
+
+        if(e.code === 'KeyQ')
+            keys.down = false;
+
+    }
+
+);
+
+
+
+/* =====================================================
+   JOYSTICK MOBILE
+===================================================== */
+
+const joystickArea =
+    document.getElementById(
+        'joystickArea'
+    );
+
+
+const joystickKnob =
+    document.getElementById(
+        'joystickKnob'
+    );
+
+
+let joystickId =
+    null;
+
+
+let joyX =
+    0;
+
+
+let joyY =
+    0;
+
+
+const JOYSTICK_RADIUS =
+    45;
+
+
+
+function updateJoystick(
+    event
+) {
+
+
+    const rect =
+        joystickArea
+        .getBoundingClientRect();
+
+
+    const cx =
+        rect.left +
+        rect.width / 2;
+
+
+    const cy =
+        rect.top +
+        rect.height / 2;
+
+
+    let dx =
+        event.clientX - cx;
+
+
+    let dy =
+        event.clientY - cy;
+
+
+    const length =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+
+
+    if(
+        length >
+        JOYSTICK_RADIUS
+    ) {
+
+
+        dx =
+            dx /
+            length *
+            JOYSTICK_RADIUS;
+
+
+        dy =
+            dy /
+            length *
+            JOYSTICK_RADIUS;
+
+    }
+
+
+
+    joyX =
+        dx /
+        JOYSTICK_RADIUS;
+
+
+    joyY =
+        dy /
+        JOYSTICK_RADIUS;
+
+
+
+    joystickKnob.style.transform =
+
+        `translate(${dx}px, ${dy}px)`;
+
+}
+
+
+
+function resetJoystick() {
+
+
+    joyX =
+        0;
+
+
+    joyY =
+        0;
+
+
+    joystickKnob.style.transform =
+        'translate(0px, 0px)';
+
+}
+
+
+
+joystickArea.addEventListener(
+
+    'pointerdown',
+
+    e => {
+
+
+        if(
+            mode !== 'walk'
+        ) return;
+
+
+        e.preventDefault();
+
+
+        joystickId =
+            e.pointerId;
+
+
+        joystickArea
+        .setPointerCapture(
+            e.pointerId
+        );
+
+
+        updateJoystick(
+            e
+        );
+
+    }
+
+);
+
+
+
+joystickArea.addEventListener(
+
+    'pointermove',
+
+    e => {
+
+
+        if(
+            e.pointerId !==
+            joystickId
+        ) return;
+
+
+        e.preventDefault();
+
+
+        updateJoystick(
+            e
+        );
+
+    }
+
+);
+
+
+
+function stopJoystick(
+    e
+) {
+
+
+    if(
+        joystickId === null
+    ) return;
+
+
+    if(
+        e &&
+        e.pointerId !== joystickId
+    ) return;
+
+
+    joystickId =
+        null;
+
+
+    resetJoystick();
+
+}
+
+
+
+joystickArea.addEventListener(
+    'pointerup',
+    stopJoystick
+);
+
+
+joystickArea.addEventListener(
+    'pointercancel',
+    stopJoystick
+);
+
+
+
+/* =====================================================
+   OLHAR NO CELULAR
+===================================================== */
+
+const touchLook =
+    document.getElementById(
+        'touchLook'
+    );
+
+
+let lookId =
+    null;
+
+
+let lastX =
+    0;
+
+
+let lastY =
+    0;
+
+
+
+/*
+   Quanto maior, mais rápido gira.
+
+   0.0035 fica relativamente suave.
+*/
+
+const LOOK_SPEED =
+    0.0035;
+
+
+
+touchLook.addEventListener(
+
+    'pointerdown',
+
+    e => {
+
+
+        if(
+            mode !== 'walk'
+        ) return;
+
+
+        e.preventDefault();
+
+
+        lookId =
+            e.pointerId;
+
+
+        lastX =
+            e.clientX;
+
+
+        lastY =
+            e.clientY;
+
+
+        touchLook
+        .setPointerCapture(
+            e.pointerId
+        );
+
+    }
+
+);
+
+
+
+touchLook.addEventListener(
+
+    'pointermove',
+
+    e => {
+
+
+        if(
+            e.pointerId !==
+            lookId
+        ) return;
+
+
+        e.preventDefault();
+
+
+
+        const dx =
+            e.clientX -
+            lastX;
+
+
+        const dy =
+            e.clientY -
+            lastY;
+
+
+
+        lastX =
+            e.clientX;
+
+
+        lastY =
+            e.clientY;
+
+
+
+        const rotation =
+            new THREE.Euler(
+
+                0,
+
+                0,
+
+                0,
+
+                'YXZ'
+            );
+
+
+        rotation
+        .setFromQuaternion(
+
+            camera.quaternion
+
+        );
+
+
+
+        rotation.y -=
+
+            dx *
+            LOOK_SPEED;
+
+
+
+        rotation.x -=
+
+            dy *
+            LOOK_SPEED;
+
+
+
+        const maxPitch =
+
+            Math.PI / 2 -
+            0.08;
+
+
+
+        rotation.x =
+
+            Math.max(
+
+                -maxPitch,
+
+                Math.min(
+
+                    maxPitch,
+
+                    rotation.x
+                )
+            );
+
+
+
+        camera.quaternion
+        .setFromEuler(
+            rotation
+        );
+
+    }
+
+);
+
+
+
+function stopLooking(
+    e
+) {
+
+
+    if(
+        lookId === null
+    ) return;
+
+
+    if(
+        e &&
+        e.pointerId !== lookId
+    ) return;
+
+
+    lookId =
+        null;
+
+}
+
+
+
+touchLook.addEventListener(
+    'pointerup',
+    stopLooking
+);
+
+
+touchLook.addEventListener(
+    'pointercancel',
+    stopLooking
+);
+
+
+
+/* =====================================================
+   SUBIR E DESCER MOBILE
+===================================================== */
+
+let mobileUp =
+    false;
+
+
+let mobileDown =
+    false;
+
+
+
+const upButton =
+    document.getElementById(
+        'upButton'
+    );
+
+
+const downButton =
+    document.getElementById(
+        'downButton'
+    );
+
+
+
+upButton.addEventListener(
+
+    'pointerdown',
+
+    e => {
+
+        e.preventDefault();
+
+        mobileUp = true;
+
+    }
+
+);
+
+
+upButton.addEventListener(
+
+    'pointerup',
+
+    () => {
+
+        mobileUp = false;
+
+    }
+
+);
+
+
+upButton.addEventListener(
+
+    'pointercancel',
+
+    () => {
+
+        mobileUp = false;
+
+    }
+
+);
+
+
+
+downButton.addEventListener(
+
+    'pointerdown',
+
+    e => {
+
+        e.preventDefault();
+
+        mobileDown = true;
+
+    }
+
+);
+
+
+downButton.addEventListener(
+
+    'pointerup',
+
+    () => {
+
+        mobileDown = false;
+
+    }
+
+);
+
+
+downButton.addEventListener(
+
+    'pointercancel',
+
+    () => {
+
+        mobileDown = false;
+
+    }
+
+);
+
+
+
+/* =====================================================
+   MOVIMENTAÇÃO
+===================================================== */
+
+const clock =
+    new THREE.Clock();
+
+
+const forward =
+    new THREE.Vector3();
+
+
+const right =
+    new THREE.Vector3();
+
+
+
+function updateMovement(
+    delta
+) {
+
+
+    if(
+        mode !== 'walk'
+    ) return;
+
+
+
+    /*
+       VELOCIDADE DE CAMINHADA
+
+       Se achar rápido, alteramos depois.
+    */
+
+    const speed =
+        modelSize * 0.06;
+
+
+    const distance =
+        speed * delta;
+
+
+
+    /* =============================================
+       COMPUTADOR
+    ============================================= */
+
+    if(!isMobile) {
+
+
+        if(
+            !pointerControls ||
+            !pointerControls.isLocked
+        ) return;
+
+
+
+        if(keys.forward)
+
+            pointerControls
+            .moveForward(
+                distance
+            );
+
+
+        if(keys.backward)
+
+            pointerControls
+            .moveForward(
+                -distance
+            );
+
+
+        if(keys.right)
+
+            pointerControls
+            .moveRight(
+                distance
+            );
+
+
+        if(keys.left)
+
+            pointerControls
+            .moveRight(
+                -distance
+            );
+
+
+        if(keys.up)
+
+            camera.position.y +=
+                distance;
+
+
+        if(keys.down)
+
+            camera.position.y -=
+                distance;
+
+
+        return;
+
+    }
+
+
+
+    /* =============================================
+       CELULAR
+    ============================================= */
+
+
+    /*
+       Direção em que a câmera está olhando.
+    */
+
+    camera.getWorldDirection(
+        forward
+    );
+
+
+
+    /*
+       Remove componente vertical.
+
+       Assim olhar para cima não faz
+       o usuário começar a voar.
+    */
+
+    forward.y =
+        0;
+
+
+    if(
+        forward.lengthSq() >
+        0.0001
+    ) {
+
+        forward.normalize();
+
+    }
+
+
+
+    /*
+       Vetor lateral.
+    */
+
+    right
+    .crossVectors(
+
+        forward,
+
+        camera.up
+    )
+    .normalize();
+
+
+
+    /*
+       Pequena zona morta do joystick.
+    */
+
+    let x =
+        Math.abs(joyX) > 0.07
+        ? joyX
+        : 0;
+
+
+    let y =
+        Math.abs(joyY) > 0.07
+        ? joyY
+        : 0;
+
+
+
+    /*
+       Frente / trás
+    */
+
+    camera.position
+    .addScaledVector(
+
+        forward,
+
+        -y *
+        distance
+    );
+
+
+
+    /*
+       Esquerda / direita
+    */
+
+    camera.position
+    .addScaledVector(
+
+        right,
+
+        x *
+        distance
+    );
+
+
+
+    /*
+       Altura
+    */
+
+    if(mobileUp)
+
+        camera.position.y +=
+            distance;
+
+
+    if(mobileDown)
+
+        camera.position.y -=
+            distance;
+
+}
+
+
+
+/* =====================================================
+   LOOP
+===================================================== */
+
+function animate() {
+
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+
+    const delta =
+
+        Math.min(
+
+            clock.getDelta(),
+
+            0.05
+        );
+
+
+
+    if(
+        mode === 'orbit'
+    ) {
+
+
+        orbit.update();
+
+    }
+
+
+    else {
+
+
+        updateMovement(
+            delta
+        );
+
+    }
+
+
+
+    renderer.render(
+
+        scene,
+
+        camera
+    );
+
+}
+
+
+
+animate();
+
+
+
+/* =====================================================
+   REDIMENSIONAMENTO
+===================================================== */
+
+window.addEventListener(
+
+    'resize',
+
+    () => {
+
+
+        camera.aspect =
+
+            window.innerWidth /
+
+            window.innerHeight;
+
+
+        camera
+        .updateProjectionMatrix();
+
+
+
+        renderer.setSize(
+
+            window.innerWidth,
+
+            window.innerHeight
+        );
+
+    }
+
+);
+
+
+</script>
+
+
+</body>
+
+</html>
